@@ -19,6 +19,7 @@ out/
 .idea/**/dictionaries
 .idea/**/inspectionProfiles
 .idea/**/deployment.xml
+.idea/**/discord.xml
 
 # IntelliJ: auto-generated
 *.iml
