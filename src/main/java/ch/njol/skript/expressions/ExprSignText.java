@@ -100,26 +100,33 @@ public class ExprSignText extends SimpleExpression<String> {
 		if ((line < 0 || line > 3) && !allLines)
 			return new String[0];
 
-		if (getTime() >= 0 && blocks.isDefault() && e instanceof SignChangeEvent && !Delay.isDelayed(e)) {
-			SignChangeEvent event = (SignChangeEvent) e;
-			if (allLines)
-				return event.getLines();
-			return new String[] {event.getLine(line)};
-		}
-
 		Block[] blocks = this.blocks.getArray(e);
 		if (blocks.length == 0)
 			return new String[0];
 
 		List<String> lines = new ArrayList<>();
+
+		boolean isSignChangeEvent = e instanceof SignChangeEvent;
+		if (getTime() >= 0 && this.blocks.isDefault() && isSignChangeEvent && !Delay.isDelayed(e)) {
+			SignChangeEvent event = (SignChangeEvent) e;
+			if (allLines)
+				lines.addAll(List.of(event.getLines()));
+			else
+				lines.add(event.getLine(line));
+		}
+
+		if (!multiple && (isSignChangeEvent && blocks[0].equals(((SignChangeEvent) e).getBlock())))
+			return lines.toArray(new String[0]);
+
 		for (Block block : blocks) {
-			if (sign.isOfType(block)) {
-				Sign sign = (Sign) block.getState();
-				if (allLines)
-					lines.addAll(Arrays.asList(sign.getLines()));
-				else
-					lines.add(sign.getLine(line));
-			}
+			if (!sign.isOfType(block))
+				continue;
+
+			Sign sign = (Sign) block.getState();
+			if (allLines)
+				lines.addAll(Arrays.asList(sign.getLines()));
+			else
+				lines.add(sign.getLine(line));
 		}
 
 		return lines.toArray(new String[0]);
@@ -151,60 +158,62 @@ public class ExprSignText extends SimpleExpression<String> {
 		if (blocks.length == 0)
 			return;
 
-		if (getTime() >= 0 && e instanceof SignChangeEvent && b.equals(((SignChangeEvent) e).getBlock()) && !Delay.isDelayed(e)) {
-			SignChangeEvent event = (SignChangeEvent) e;
+		for (Block block : blocks) {
+			if (!sign.isOfType(block))
+				continue;
+
+			if (e instanceof SignChangeEvent && block.equals(((SignChangeEvent) e).getBlock())) {
+				SignChangeEvent event = (SignChangeEvent) e;
+				if (getTime() >= 0 && !Delay.isDelayed(e)) {
+					switch (mode) {
+						case DELETE:
+							if (allLines) {
+								setAllLines(null, "", event);
+								break;
+							}
+							event.setLine(line, "");
+							break;
+						case SET:
+							assert delta != null;
+							String lineString = (String) delta[0];
+							if (allLines) {
+								setAllLines(null, lineString, event);
+								break;
+							}
+							event.setLine(line, lineString);
+							break;
+					}
+				}
+			}
+
+			Sign s = (Sign) block.getState();
 			switch (mode) {
 				case DELETE:
 					if (allLines) {
-						setAllLines(null, "", event);
+						setAllLines(s, "", null);
 						break;
 					}
-					event.setLine(line, "");
+					s.setLine(line, "");
 					break;
 				case SET:
 					assert delta != null;
 					String lineString = (String) delta[0];
 					if (allLines) {
-						setAllLines(null, lineString, event);
+						setAllLines(s, lineString, null);
 						break;
 					}
-					event.setLine(line, lineString);
+					s.setLine(line, lineString);
 					break;
 			}
-		} else {
-			for (Block block : blocks) {
-				if (!sign.isOfType(block))
-					return;
-
-				Sign s = (Sign) block.getState();
-				switch (mode) {
-					case DELETE:
-						if (allLines) {
-							setAllLines(s, "", null);
-							break;
-						}
-						s.setLine(line, "");
-						break;
-					case SET:
-						assert delta != null;
-						String lineString = (String) delta[0];
-						if (allLines) {
-							setAllLines(s, lineString, null);
-							break;
-						}
-						s.setLine(line, lineString);
-						break;
-				}
-				if (hasUpdateBooleanBoolean) {
-					try {
-						s.update(false, false);
-					} catch (NoSuchMethodError err) {
-						hasUpdateBooleanBoolean = false;
-						s.update();
-					}
-				} else {
+			if (hasUpdateBooleanBoolean) {
+				try {
+					s.update(false, false);
+				} catch (NoSuchMethodError err) {
+					hasUpdateBooleanBoolean = false;
 					s.update();
 				}
+			} else {
+				s.update();
 			}
 		}
 	}
