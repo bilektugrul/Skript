@@ -80,13 +80,17 @@ public class ExprAllSignLines extends SimpleExpression<String> {
 		List<String> lines = new ArrayList<>();
 
 		boolean isSignChangeEvent = e instanceof SignChangeEvent;
-		if (getTime() >= 0 && this.blocks.isDefault() && isSignChangeEvent && !Delay.isDelayed(e)) {
+		if (isSignChangeEvent) {
 			SignChangeEvent event = (SignChangeEvent) e;
-			lines.addAll(List.of(event.getLines()));
+			if (getTime() == -1) {
+				lines.addAll(List.of(((Sign) event.getBlock()).getLines()));
+			} else if (getTime() >= 0 && this.blocks.isDefault() && !Delay.isDelayed(e)) {
+				lines.addAll(List.of(event.getLines()));
+			}
 		}
 
 		if (!multiple && (isSignChangeEvent && blocks[0].equals(((SignChangeEvent) e).getBlock())))
-			return lines.toArray(new String[0]);
+			return lines.toArray(String[]::new);
 
 		for (Block block : blocks) {
 			if (!sign.isOfType(block))
@@ -96,7 +100,7 @@ public class ExprAllSignLines extends SimpleExpression<String> {
 			lines.addAll(Arrays.asList(sign.getLines()));
 		}
 
-		return lines.toArray(new String[0]);
+		return lines.toArray(String[]::new);
 	}
 
 	@Override
@@ -107,7 +111,7 @@ public class ExprAllSignLines extends SimpleExpression<String> {
 		return null;
 	}
 
-	static boolean hasUpdateBooleanBoolean = true;
+	private static boolean hasForceUpdate = true;
 
 	@SuppressWarnings("incomplete-switch")
 	@Override
@@ -145,15 +149,16 @@ public class ExprAllSignLines extends SimpleExpression<String> {
 					setAllLines(s, (String) delta[0], null);
 					break;
 			}
-			if (hasUpdateBooleanBoolean) {
+			if (hasForceUpdate) {
+				s.update(false, false);
+			} else {
 				try {
 					s.update(false, false);
+					hasForceUpdate = true;
 				} catch (NoSuchMethodError err) {
-					hasUpdateBooleanBoolean = false;
+					hasForceUpdate = false;
 					s.update();
 				}
-			} else {
-				s.update();
 			}
 		}
 	}

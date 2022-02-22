@@ -108,7 +108,7 @@ public class ExprSignText extends SimpleExpression<String> {
 		}
 
 		if (!multiple && (isSignChangeEvent && blocks[0].equals(((SignChangeEvent) e).getBlock())))
-			return lines.toArray(new String[0]);
+			return lines.toArray(String[]::new);
 
 		for (Block block : blocks) {
 			if (!sign.isOfType(block))
@@ -118,7 +118,7 @@ public class ExprSignText extends SimpleExpression<String> {
 			lines.add(sign.getLine(line));
 		}
 
-		return lines.toArray(new String[0]);
+		return lines.toArray(String[]::new);
 	}
 	
 	// TODO allow add, remove, and remove all (see ExprLore)
@@ -130,7 +130,7 @@ public class ExprSignText extends SimpleExpression<String> {
 		return null;
 	}
 	
-	static boolean hasUpdateBooleanBoolean = true;
+	private static boolean hasUpdateBooleanBoolean = true;
 	
 	@SuppressWarnings("incomplete-switch")
 	@Override
