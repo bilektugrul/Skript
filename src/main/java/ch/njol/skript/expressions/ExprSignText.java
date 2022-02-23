@@ -102,9 +102,13 @@ public class ExprSignText extends SimpleExpression<String> {
 		List<String> lines = new ArrayList<>();
 
 		boolean isSignChangeEvent = e instanceof SignChangeEvent;
-		if (getTime() >= 0 && this.blocks.isDefault() && isSignChangeEvent && !Delay.isDelayed(e)) {
+		if (isSignChangeEvent) {
 			SignChangeEvent event = (SignChangeEvent) e;
-			lines.add(event.getLine(line));
+			if (getTime() == -1) {
+				lines.add(((Sign) event.getBlock().getState()).getLine(line));
+			} else if (getTime() >= 0 && this.blocks.isDefault() && !Delay.isDelayed(e)) {
+				lines.add(event.getLine(line));
+			}
 		}
 
 		if (!multiple && (isSignChangeEvent && blocks[0].equals(((SignChangeEvent) e).getBlock())))
