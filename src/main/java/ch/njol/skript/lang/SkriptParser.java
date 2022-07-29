@@ -367,20 +367,15 @@ public class SkriptParser {
 				log.printError();
 				return null;
 			}
-			if (types[0] == Object.class) {
-				// Do check if a literal with this name actually exists before returning an UnparsedLiteral
-				if (!allowUnparsedLiteral || Classes.parseSimple(expr, Object.class, context) == null) {
-					log.printError();
-					return null;
-				}
+			if (allowUnparsedLiteral && types[0] == Object.class) {
 				log.clear();
-				final LogEntry e = log.getError();
+				LogEntry e = log.getError();
 				return (Literal<? extends T>) new UnparsedLiteral(expr, e != null && (error == null || e.quality > error.quality) ? e : error);
 			}
 			for (final Class<? extends T> c : types) {
 				log.clear();
 				assert c != null;
-				final T t = Classes.parse(expr, c, context);
+				T t = Classes.parse(expr, c, context);
 				if (t != null) {
 					log.printLog();
 					return new SimpleLiteral<>(t, false);
@@ -566,20 +561,14 @@ public class SkriptParser {
 				log.printError();
 				return null;
 			}
-			if (vi.classes[0].getC() == Object.class) {
-				// Do check if a literal with this name actually exists before returning an UnparsedLiteral
-				if (!allowUnparsedLiteral || Classes.parseSimple(expr, Object.class, context) == null) {
-					log.printError();
-					return null;
-				}
+			if (allowUnparsedLiteral && vi.classes[0].getC() == Object.class) {
 				log.clear();
-				final LogEntry e = log.getError();
+				LogEntry e = log.getError();
 				return new UnparsedLiteral(expr, e != null && (error == null || e.quality > error.quality) ? e : error);
 			}
-			for (final ClassInfo<?> ci : vi.classes) {
+			for (ClassInfo<?> ci : vi.classes) {
 				log.clear();
-				assert ci.getC() != null;
-				final Object t = Classes.parse(expr, ci.getC(), context);
+				Object t = Classes.parse(expr, ci.getC(), context);
 				if (t != null) {
 					log.printLog();
 					return new SimpleLiteral<>(t, false, new UnparsedLiteral(expr));
@@ -622,7 +611,7 @@ public class SkriptParser {
 		final boolean isObject = types.length == 1 && types[0] == Object.class;
 		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
-			final Expression<? extends T> r = parseSingleExpr(true, null, types);
+			final Expression<? extends T> r = parseSingleExpr(false, null, types);
 			if (r != null) {
 				log.printLog();
 				return r;
@@ -748,7 +737,7 @@ public class SkriptParser {
 		final ParseLogHandler log = SkriptLogger.startParseLogHandler();
 		try {
 			// Attempt to parse a single expression
-			final Expression<?> r = parseSingleExpr(true, null, vi);
+			final Expression<?> r = parseSingleExpr(false, null, vi);
 			if (r != null) {
 				log.printLog();
 				return r;
